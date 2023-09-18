@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SNS
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 512
+    Runtime: dotnet6
+    Architectures:
+      - x86_64
+
+Parameters:
+  SlackWebHook:
+    Type: String
+
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: "SlackTopic"
+
+  SlackForwarderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: SNS2Slack::SNS2Slack.Function::FunctionHandler
+      CodeUri: ./src/SNS2Slack/
+      Environment:
+        Variables:
+          SlackWebHook: !Ref SlackWebHook
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref SNSTopic
+
+Outputs:
+  SNSArn:
+    Description: SNS ARN
+    Value: !Ref SNSTopic
